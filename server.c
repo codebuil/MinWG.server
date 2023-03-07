@@ -10,6 +10,7 @@ void handle_request(SOCKET client_socket) {
     char buffer[BUF_SIZE];
     int recv_bytes;
     char response[BUF_SIZE];
+     
 
     // Construct HTTP response
     sprintf(response, "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\nHello, world!\r\n", strlen("Hello, world!\r\n"));
@@ -21,6 +22,9 @@ void handle_request(SOCKET client_socket) {
 int main() {
     char buffer[4096];
     WSADATA wsaData;
+    char *ptr;
+    char *ptr2;
+    char *ptr3;
     SOCKET listen_socket, client_socket;
     struct sockaddr_in server_addr, client_addr;
     int client_addr_len = sizeof(client_addr);
@@ -72,8 +76,15 @@ int main() {
             return 1;
         }
         int received = recv(client_socket, buffer, sizeof(buffer), 0);
-        printf("Received request (%d bytes):\n%s\n", received, buffer);
-
+        ptr = strchr(buffer, '/');
+        if(ptr!=NULL){
+            ptr2 = strchr(ptr,' ');
+            if(ptr2!=NULL){
+                ptr2[0]=0;
+                ptr++;
+                printf("Received request %s\n", ptr);
+            }
+        }
         // Handle request
         handle_request(client_socket);
 
