@@ -4,13 +4,13 @@
 #include <winsock2.h>
 
 #define BUF_SIZE 1024
-#define DEFAULT_PORT 8010
+#define DEFAULT_PORT 8080
 
 void handle_request(SOCKET client_socket) {
     char buffer[BUF_SIZE];
     int recv_bytes;
     char response[BUF_SIZE];
-printf("hello world\r\n");
+
     // Construct HTTP response
     sprintf(response, "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\nHello, world!\r\n", strlen("Hello, world!\r\n"));
 
@@ -70,6 +70,7 @@ int main() {
             WSACleanup();
             return 1;
         }
+        printf("Client connected: %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 
         printf("Client connected.\n");
 
