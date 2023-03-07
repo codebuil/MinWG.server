@@ -4,7 +4,7 @@
 #include <winsock2.h>
 
 #define BUF_SIZE 1024
-#define DEFAULT_PORT 8080
+#define DEFAULT_PORT 8001
 
 void handle_request(SOCKET client_socket) {
     char buffer[BUF_SIZE];
@@ -19,6 +19,7 @@ void handle_request(SOCKET client_socket) {
 }
 
 int main() {
+    char buffer[4096];
     WSADATA wsaData;
     SOCKET listen_socket, client_socket;
     struct sockaddr_in server_addr, client_addr;
@@ -70,9 +71,8 @@ int main() {
             WSACleanup();
             return 1;
         }
-        printf("Client connected: %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
-
-        printf("Client connected.\n");
+        int received = recv(client_socket, buffer, sizeof(buffer), 0);
+        printf("Received request (%d bytes):\n%s\n", received, buffer);
 
         // Handle request
         handle_request(client_socket);
