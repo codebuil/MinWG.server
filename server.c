@@ -6,15 +6,15 @@
 #define BUF_SIZE 1024
 #define DEFAULT_PORT 8001
 
-void handle_request(SOCKET client_socket) {
+void handle_request(SOCKET client_socket,char *c) {
     char buffer[BUF_SIZE];
     int recv_bytes;
     char response[BUF_SIZE];
-     
+    int lenl=strlen(c); 
 
     // Construct HTTP response
-    sprintf(response, "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\nHello, world!\r\n", strlen("Hello, world!\r\n"));
-
+    sprintf(response, "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n", lenl);
+    strcat(response,c);
     // Send HTTP response
     send(client_socket, response, strlen(response), 0);
 }
@@ -75,6 +75,8 @@ int main() {
             WSACleanup();
             return 1;
         }
+        ptr=NULL;
+        ptr2=NULL;
         int received = recv(client_socket, buffer, sizeof(buffer), 0);
         ptr = strchr(buffer, '/');
         if(ptr!=NULL){
@@ -82,14 +84,14 @@ int main() {
             if(ptr2!=NULL){
                 ptr2[0]=0;
                 ptr++;
+                handle_request(client_socket,ptr);
+                
                 printf("Received request %s\n", ptr);
             }
         }
         // Handle request
-        handle_request(client_socket);
-
-        // Cleanup
-        closesocket(client_socket);
+    
+       
     }
 
     // Cleanup
