@@ -1,22 +1,35 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdlib.h>
 #include <winsock2.h>
 
-#define BUF_SIZE 1024
-#define DEFAULT_PORT 8001
-
+#define BUF_SIZE 5000000
+#define DEFAULT_PORT 8012
+char *buffers;
+char *response;
 void handle_request(SOCKET client_socket,char *c) {
-    char buffer[BUF_SIZE];
+    
     int recv_bytes;
-    char response[BUF_SIZE];
-    int lenl=strlen(c); 
-
-    // Construct HTTP response
-    sprintf(response, "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n", lenl);
-    strcat(response,c);
-    // Send HTTP response
-    send(client_socket, response, strlen(response), 0);
+    printf("call\r\n");
+    int lenl=0; 
+    FILE *fp;
+    fp = fopen(c, "r");
+    buffers[0]=0;
+    if(fp!=NULL){
+        lenl=fread(buffers, sizeof(char), BUF_SIZE-1024, fp);
+        buffers[BUF_SIZE-1024]=0;
+        fclose(fp);
+        // Construct HTTP response
+        sprintf(response, "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n", lenl);
+        strcat(response,buffers);
+        // Send HTTP response
+        send(client_socket, response, strlen(response), 0);
+    }
+    else{
+       sprintf(response, "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 0\r\n\r\n\r\n\r\n"); 
+       send(client_socket, response, strlen(response), 0);
+    }
 }
 
 int main() {
@@ -25,10 +38,12 @@ int main() {
     char *ptr;
     char *ptr2;
     char *ptr3;
+    int recv_bytes;
     SOCKET listen_socket, client_socket;
     struct sockaddr_in server_addr, client_addr;
     int client_addr_len = sizeof(client_addr);
-    
+    buffers = (char*) malloc(BUF_SIZE);
+    response = (char*) malloc(BUF_SIZE);
     // Initialize Winsock
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
         printf("Error initializing Winsock.\n");
@@ -80,13 +95,16 @@ int main() {
         int received = recv(client_socket, buffer, sizeof(buffer), 0);
         ptr = strchr(buffer, '/');
         if(ptr!=NULL){
+            
             ptr2 = strchr(ptr,' ');
             if(ptr2!=NULL){
+                
                 ptr2[0]=0;
                 ptr++;
+                printf("Received request %s\n", ptr);
                 handle_request(client_socket,ptr);
                 
-                printf("Received request %s\n", ptr);
+                
             }
         }
         // Handle request
@@ -97,6 +115,8 @@ int main() {
     // Cleanup
     closesocket(listen_socket);
     WSACleanup();
+    free(response);
+    free(buffers);
 
     return 0;
 }
