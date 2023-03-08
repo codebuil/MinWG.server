@@ -8,23 +8,36 @@
 #define DEFAULT_PORT 8012
 char *buffers;
 char *response;
+void *memcpy(void *dest, const void *src, size_t n)
+{
+    char *cdest = dest;
+    const char *csrc = src;
+    size_t i;
+    for (i = 0; i < n; i++)
+        cdest[i] = csrc[i];
+    return dest;
+}
+
 void handle_request(SOCKET client_socket,char *c) {
-    
+    char *p1;    
     int recv_bytes;
     printf("call\r\n");
     int lenl=0; 
+    int lenl2=0;
     FILE *fp;
     fp = fopen(c, "r");
     buffers[0]=0;
-    if(fp!=NULL){
+    if(fp!=NULL){       
         lenl=fread(buffers, sizeof(char), BUF_SIZE-1024, fp);
         buffers[BUF_SIZE-1024]=0;
         fclose(fp);
         // Construct HTTP response
         sprintf(response, "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n", lenl);
-        strcat(response,buffers);
+        lenl2=strlen(response);
+        p1=response+lenl2;
+        memcpy(p1,buffers,lenl);
         // Send HTTP response
-        send(client_socket, response, strlen(response), 0);
+        send(client_socket, response, lenl2+lenl, 0);
     }
     else{
        sprintf(response, "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 0\r\n\r\n\r\n\r\n"); 
