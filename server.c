@@ -8,6 +8,32 @@
 #define DEFAULT_PORT 8012
 char *buffers;
 char *response;
+#include <stdio.h>
+#include <string.h>
+
+const char* get_content_type(const char* filename) {
+    const char* extension = strchr(filename, '.');
+    if (extension == NULL) {
+        return "application/octet-stream";
+    } else if (strcmp(extension, ".html") == 0) {
+        return "text/html";
+    } else if (strcmp(extension, ".css") == 0) {
+        return "text/css";
+    } else if (strcmp(extension, ".js") == 0) {
+        return "text/javascript";
+    } else if (strcmp(extension, ".jpg") == 0 || strcmp(extension, ".jpeg") == 0) {
+        return "image/jpeg";
+    } else if (strcmp(extension, ".png") == 0) {
+        return "image/png";
+    } else if (strcmp(extension, ".gif") == 0) {
+        return "image/gif";
+    } else if (strcmp(extension, ".pdf") == 0) {
+        return "application/pdf";
+    } else {
+        return "application/octet-stream";
+    }
+}
+
 void *memcpy(void *dest, const void *src, size_t n)
 {
     char *cdest = dest;
@@ -21,6 +47,7 @@ void *memcpy(void *dest, const void *src, size_t n)
 void handle_request(SOCKET client_socket,char *c) {
     char *p1;    
     int recv_bytes;
+    char buf[1024];
     printf("call\r\n");
     int lenl=0; 
     int lenl2=0;
@@ -32,7 +59,10 @@ void handle_request(SOCKET client_socket,char *c) {
         buffers[BUF_SIZE-1024]=0;
         fclose(fp);
         // Construct HTTP response
-        sprintf(response, "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n", lenl);
+        strcpy(response, "HTTP/1.1 200 OK\r\nContent-Type: ");   
+        strcat(response,get_content_type(c));
+        sprintf(buf, "\r\nContent-Length: %d\r\n\r\n", lenl);
+        strcat(response,buf);
         lenl2=strlen(response);
         p1=response+lenl2;
         memcpy(p1,buffers,lenl);
